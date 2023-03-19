@@ -25,14 +25,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls {
-            let url = url.absoluteString
+            guard let url = url.absoluteString.removingPercentEncoding else { return }
+            let arguments = url.split(separator: "://", maxSplits: 1)
             
-            if url.starts(with: "ssh://") {
-                let address = String(url.dropFirst("ssh://".count))
-                run("ssh", address)
-            } else if url.starts(with: "file://") {
-                let filename = String(url.dropFirst("file://".count))
-                run(filename)
+            guard arguments.count == 2 else { return }
+            let scheme = arguments[0]
+            let path = String(arguments[1])
+            
+            if scheme == "ssh" {
+                run("ssh", path)
+            } else if scheme == "file" {
+                run(path)
             }
         }
         application.terminate(self)
